@@ -65,6 +65,7 @@ class AddedToCartMessageScreen extends StatelessWidget {
                 },
                 child: const Text("Checkout"),
               ),
+              const Spacer(),
             ],
           ),
         ),

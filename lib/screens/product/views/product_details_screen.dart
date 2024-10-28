@@ -157,6 +157,4 @@ class ProductDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
-  void setState(Null Function() param0) {}
 }
