@@ -70,8 +70,6 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
         'brandName': product.brandName,
         'discountPercent': product.dicountpercent,
         'priceAfterDiscount': product.priceAfetDiscount,
-        'selectedColor': _selectedColorIndex,
-        'selectedSize': _selectedSizeIndex,
       });
       print('Product data saved successfully!');
     } catch (e) {
@@ -92,31 +90,20 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
 
     await _saveProductData(product);
 
-    // Navigate to the AddedToCartMessageScreen
-    Navigator.push(
-      context,
+    // Navigate to the AddedToCartMessageScreen with the added product details
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => AddedToCartMessageScreen(
-          items: [{
-            'title': product.title,
-            'price': product.price,
-            'quantity': _itemCount,
-            'selectedColor': _selectedColorIndex,
-            'selectedSize': _selectedSizeIndex,
-          }],
-        ),
-      ),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Product added to cart successfully!'),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            // Code to undo the action can be added here
-          },
+          items: [
+            {
+              'title': product.title,
+              'price': product.price,
+              'quantity': _itemCount,
+              'brandName': product.brandName,
+              'discountPercent': product.dicountpercent,
+              'priceAfterDiscount': product.priceAfetDiscount,
+            },
+          ],
         ),
       ),
     );
@@ -326,7 +313,6 @@ class AddedToCartMessageScreen extends StatelessWidget {
                 },
                 child: const Text("Checkout"),
               ),
-              const Spacer(),
             ],
           ),
         ),

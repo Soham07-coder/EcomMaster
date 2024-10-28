@@ -30,10 +30,10 @@ class NotifyMeCard extends StatelessWidget {
               color: isNotify
                   ? Colors.transparent
                   : Theme.of(context)
-                      .textTheme
-                      .bodyLarge!
-                      .color!
-                      .withOpacity(0.1),
+                  .textTheme
+                  .bodyLarge!
+                  .color!
+                  .withOpacity(0.1),
             ),
           ),
           child: Padding(
@@ -44,7 +44,7 @@ class NotifyMeCard extends StatelessWidget {
                   height: 40,
                   width: 40,
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {}, // Optional action for the button
                     style: OutlinedButton.styleFrom(
                       backgroundColor: primaryColor,
                       padding: EdgeInsets.zero,
@@ -61,10 +61,11 @@ class NotifyMeCard extends StatelessWidget {
                   child: Text(
                     "Notify when product back to stock.",
                     style: TextStyle(
-                        color: isNotify
-                            ? Colors.white
-                            : Theme.of(context).textTheme.bodyLarge!.color,
-                        fontWeight: FontWeight.w500),
+                      color: isNotify
+                          ? Colors.white
+                          : Theme.of(context).textTheme.bodyLarge!.color,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
                 CupertinoSwitch(
