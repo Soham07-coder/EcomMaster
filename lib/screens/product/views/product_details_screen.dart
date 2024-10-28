@@ -18,15 +18,8 @@ import '../../../components/review_card.dart';
 import 'product_buy_now_screen.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
-  ProductDetailsScreen({super.key, this.isProductAvailable = true});
+  const ProductDetailsScreen({super.key, this.isProductAvailable = true});
 
-  bool _isNotify = false;
-
-  void _toggleNotify(bool value) {
-    setState(() {
-      _isNotify = value;
-    });
-  }
   final bool isProductAvailable;
 
   @override
@@ -50,8 +43,8 @@ class ProductDetailsScreen extends StatelessWidget {
 
           /// If profuct is not available then show [NotifyMeCard]
       NotifyMeCard(
-        isNotify: _isNotify,
-        onChanged: _toggleNotify, // Pass the toggle function
+        isNotify: false,
+        onChanged: (value) {},
       ),
       body: SafeArea(
         child: CustomScrollView(

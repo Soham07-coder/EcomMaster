@@ -253,4 +253,3 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
     );
   }
 }
-
