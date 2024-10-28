@@ -5,9 +5,17 @@ import '../models/product_model.dart';
 
 class CartProvider with ChangeNotifier {
   List<Map<String, dynamic>> _cartItems = [];
+  ProductModel? _selectedProduct; // Add this field
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   List<Map<String, dynamic>> get cartItems => _cartItems;
+
+  ProductModel? get selectedProduct => _selectedProduct; // Add this getter
+
+  void setSelectedProduct(ProductModel product) {
+    _selectedProduct = product;
+    notifyListeners();
+  }
 
   // Add item to cart and Firestore
   Future<void> addToCart(ProductModel product) async {
@@ -41,9 +49,17 @@ class CartProvider with ChangeNotifier {
 
   // Remove item from cart and Firestore
   Future<void> removeItem(String itemId) async {
-    _cartItems.removeWhere((item) => item['id'] == itemId);
-    // To implement: find and remove from Firestore based on itemId
-    notifyListeners();
+    // Find the document reference to delete
+    final docSnapshot = await _firestore.collection('carts').where('id', isEqualTo: itemId).get();
+
+    // Remove the item from Firestore if found
+    if (docSnapshot.docs.isNotEmpty) {
+      await docSnapshot.docs.first.reference.delete();
+      _cartItems.removeWhere((item) => item['id'] == itemId);
+      notifyListeners();
+    } else {
+      print('Item not found in Firestore.');
+    }
   }
 
   void incrementQuantity(String itemId) {

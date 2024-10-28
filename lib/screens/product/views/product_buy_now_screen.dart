@@ -1,17 +1,22 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ecomprj/components/cart_button.dart';
-import 'package:ecomprj/components/custom_modal_bottom_sheet.dart';
-import 'package:ecomprj/components/network_image_with_loader.dart';
-import 'package:ecomprj/screens/product/views/added_to_cart_message_screen.dart';
-import 'package:ecomprj/screens/product/views/components/product_list_tile.dart';
-import 'package:ecomprj/screens/product/views/location_permission_store_availability_screen.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../constants.dart';
 import 'components/product_quantity.dart';
 import 'components/selected_colors.dart';
 import 'components/selected_size.dart';
 import 'components/unit_price.dart';
+import 'package:ecomprj/components/cart_button.dart';
+import 'package:ecomprj/components/network_image_with_loader.dart';
+import 'package:ecomprj/screens/product/views/components/product_list_tile.dart';
+import 'package:ecomprj/screens/product/views/location_permission_store_availability_screen.dart';
+import 'package:ecomprj/models/product_model.dart';
 
 class ProductBuyNowScreen extends StatefulWidget {
   const ProductBuyNowScreen({super.key});
@@ -21,7 +26,24 @@ class ProductBuyNowScreen extends StatefulWidget {
 }
 
 class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
-  int _itemCount = 1; // State variable to keep track of item count
+  int _itemCount = 1;
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+  bool _isConnected = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkNetworkConnectivity();
+  }
+
+  void _checkNetworkConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    setState(() {
+      _isConnected = connectivityResult != ConnectivityResult.none;
+    });
+  }
+
 
   void _incrementItemCount() {
     setState(() {
@@ -30,11 +52,69 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
   }
 
   void _decrementItemCount() {
-    if (_itemCount > 1) { // Prevent count from going below 1
+    if (_itemCount > 1) {
       setState(() {
         _itemCount--;
       });
     }
+  }
+  Future<String?> _uploadImageToFirebase() async {
+    if (_selectedImage == null) return null;
+
+    try {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference storageRef = FirebaseStorage.instance.ref().child('products/$fileName');
+      await storageRef.putFile(_selectedImage!);
+
+      String downloadUrl = await storageRef.getDownloadURL();
+      print('Image uploaded successfully with URL: $downloadUrl');
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+
+  Future<void> _saveProductData(ProductModel product) async {
+    try {
+      await FirebaseFirestore.instance.collection('products').add({
+        'title': product.title,
+        'price': product.price,
+        'quantity': _itemCount,
+        'brandName': product.brandName,
+        'discountPercent': product.dicountpercent,
+        'priceAfterDiscount': product.priceAfetDiscount,
+      });
+      print('Product data saved successfully!');
+    } catch (e) {
+      print('Error saving product data: ${e.toString()}');
+    }
+  }
+
+  void _onAddToCart() async {
+    ProductModel product = ProductModel(
+      id: 'custom-${DateTime.now().millisecondsSinceEpoch}',
+      image: _selectedImage?.path ?? '',
+      title: "Sleeveless Ruffle",
+      brandName: "Your Brand Name",
+      price: 145.0,
+      priceAfetDiscount: 134.7,
+      dicountpercent: 5,
+    );
+
+    await _saveProductData(product);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Product added to cart successfully!'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            // Code to undo the action can be added here
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -42,16 +122,9 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
     return Scaffold(
       bottomNavigationBar: CartButton(
         price: 269.4,
-        title: "Add to cart",
+        title: "Buy Now",
         subTitle: "Total price",
-        press: () {
-          // Here you can pass the _itemCount to the cart provider if needed
-          customModalBottomSheet(
-            context,
-            isDismissible: false,
-            child: const AddedToCartMessageScreen(items: [],),
-          );
-        },
+        press: _onAddToCart,
       ),
       body: Column(
         children: [
@@ -67,7 +140,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {}, // No image selection needed
                   icon: SvgPicture.asset("assets/icons/Bookmark.svg",
                       color: Theme.of(context).textTheme.bodyLarge!.color),
                 ),
@@ -99,9 +172,9 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                           ),
                         ),
                         ProductQuantity(
-                          numOfItem: _itemCount, // Pass the current count
-                          onIncrement: _incrementItemCount, // Increment function
-                          onDecrement: _decrementItemCount, // Decrement function
+                          numOfItem: _itemCount,
+                          onIncrement: _incrementItemCount,
+                          onDecrement: _decrementItemCount,
                         ),
                       ],
                     ),
@@ -138,8 +211,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                   ),
                 ),
                 SliverPadding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: defaultPadding),
+                  padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
                   sliver: SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +223,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                         ),
                         const SizedBox(height: defaultPadding / 2),
                         const Text(
-                            "Select a size to check store availability and In-Store pickup options.")
+                            "Select a size to check store availability and In-Store pickup options."),
                       ],
                     ),
                   ),
@@ -159,23 +231,20 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(vertical: defaultPadding),
                   sliver: ProductListTile(
-                    title: "Check stores",
-                    svgSrc: "assets/icons/Stores.svg",
-                    isShowBottomBorder: true,
+                    title: "View details",
+                    svgSrc: "assets/icons/Details.svg",
                     press: () {
-                      customModalBottomSheet(
-                        context,
-                        height: MediaQuery.of(context).size.height * 0.92,
-                        child: const LocationPermissonStoreAvailabilityScreen(),
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const LocationPermissonStoreAvailabilityScreen(),
+                        ),
                       );
                     },
                   ),
                 ),
-                const SliverToBoxAdapter(
-                    child: SizedBox(height: defaultPadding))
               ],
             ),
-          )
+          ),
         ],
       ),
     );
