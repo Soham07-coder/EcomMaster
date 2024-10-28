@@ -1,13 +1,12 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../constants.dart';
+import '../../../route/route_constants.dart';
 import 'components/product_quantity.dart';
 import 'components/selected_colors.dart';
 import 'components/selected_size.dart';
@@ -31,6 +30,10 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isConnected = true;
 
+  // State variables for selected color and size
+  int _selectedColorIndex = 2; // Default selected color index
+  int _selectedSizeIndex = 1; // Default selected size index
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +46,6 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
       _isConnected = connectivityResult != ConnectivityResult.none;
     });
   }
-
 
   void _incrementItemCount() {
     setState(() {
@@ -58,22 +60,6 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
       });
     }
   }
-  Future<String?> _uploadImageToFirebase() async {
-    if (_selectedImage == null) return null;
-
-    try {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      Reference storageRef = FirebaseStorage.instance.ref().child('products/$fileName');
-      await storageRef.putFile(_selectedImage!);
-
-      String downloadUrl = await storageRef.getDownloadURL();
-      print('Image uploaded successfully with URL: $downloadUrl');
-      return downloadUrl;
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
-  }
 
   Future<void> _saveProductData(ProductModel product) async {
     try {
@@ -84,6 +70,8 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
         'brandName': product.brandName,
         'discountPercent': product.dicountpercent,
         'priceAfterDiscount': product.priceAfetDiscount,
+        'selectedColor': _selectedColorIndex,
+        'selectedSize': _selectedSizeIndex,
       });
       print('Product data saved successfully!');
     } catch (e) {
@@ -103,6 +91,23 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
     );
 
     await _saveProductData(product);
+
+    // Navigate to the AddedToCartMessageScreen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddedToCartMessageScreen(
+          items: [{
+            'title': product.title,
+            'price': product.price,
+            'quantity': _itemCount,
+            'selectedColor': _selectedColorIndex,
+            'selectedSize': _selectedSizeIndex,
+          }],
+        ),
+      ),
+    );
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Product added to cart successfully!'),
@@ -181,6 +186,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                   ),
                 ),
                 const SliverToBoxAdapter(child: Divider()),
+                // Color Selection
                 SliverToBoxAdapter(
                   child: SelectedColors(
                     colors: const [
@@ -190,15 +196,24 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                       Color(0xFF9FE1DD),
                       Color(0xFFC482DB),
                     ],
-                    selectedColorIndex: 2,
-                    press: (value) {},
+                    selectedColorIndex: _selectedColorIndex,
+                    press: (value) {
+                      setState(() {
+                        _selectedColorIndex = value; // Update the selected color index
+                      });
+                    },
                   ),
                 ),
+                // Size Selection
                 SliverToBoxAdapter(
                   child: SelectedSize(
                     sizes: const ["S", "M", "L", "XL", "XXL"],
-                    selectedIndex: 1,
-                    press: (value) {},
+                    selectedIndex: _selectedSizeIndex,
+                    press: (value) {
+                      setState(() {
+                        _selectedSizeIndex = value; // Update the selected size index
+                      });
+                    },
                   ),
                 ),
                 SliverPadding(
@@ -246,6 +261,75 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class AddedToCartMessageScreen extends StatelessWidget {
+  final List<Map<String, dynamic>> items; // Accept the list of items
+
+  const AddedToCartMessageScreen({super.key, required this.items}); // Accept items through constructor
+
+  Future<void> _addItemsToCart() async {
+    // Get a reference to the Firestore collection
+    final cartCollection = FirebaseFirestore.instance.collection('carts');
+
+    // Iterate through the items and add each one to Firestore
+    for (var item in items) {
+      await cartCollection.add(item);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Call the method to add items to Firestore when the screen is built
+    _addItemsToCart();
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+          child: Column(
+            children: [
+              const Spacer(),
+              Image.asset(
+                Theme.of(context).brightness == Brightness.light
+                    ? "assets/Illustration/success.png"
+                    : "assets/Illustration/success_dark.png",
+                height: MediaQuery.of(context).size.height * 0.3,
+              ),
+              const Spacer(flex: 2),
+              Text(
+                "Added to cart",
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall!
+                    .copyWith(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: defaultPadding / 2),
+              const Text(
+                "Click the checkout button to complete the purchase process.",
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(flex: 2),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, entryPointScreenRoute);
+                },
+                child: const Text("Continue Shopping"),
+              ),
+              const SizedBox(height: defaultPadding),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, cartScreenRoute);
+                },
+                child: const Text("Checkout"),
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:ecomprj/screens/order/views/orders_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ecomprj/constants.dart';
@@ -15,7 +16,7 @@ class _EntryPointState extends State<EntryPoint> {
   final List _pages = const [
     HomeScreen(),
     DiscoverScreen(),
-    CartScreen(),
+    OrdersScreen(),
     ProfileScreen(),
   ];
   int _currentIndex = 0;
@@ -133,12 +134,6 @@ class _EntryPointState extends State<EntryPoint> {
               icon: svgIcon("assets/icons/Bag.svg"),
               activeIcon: svgIcon("assets/icons/Bag.svg", color: primaryColor),
               label: "Cart",
-            ),
-            BottomNavigationBarItem(
-              icon: svgIcon("assets/icons/Profile.svg"),
-              activeIcon:
-                  svgIcon("assets/icons/Profile.svg", color: primaryColor),
-              label: "Profile",
             ),
           ],
         ),

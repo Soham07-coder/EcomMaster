@@ -44,7 +44,9 @@ class ProductDetailsScreen extends StatelessWidget {
           /// If profuct is not available then show [NotifyMeCard]
           NotifyMeCard(
               isNotify: false,
-              onChanged: (value) {},
+              onChanged: (value) {
+
+              },
             ),
       body: SafeArea(
         child: CustomScrollView(
@@ -72,18 +74,6 @@ class ProductDetailsScreen extends StatelessWidget {
               rating: 4.4,
               numOfReviews: 126,
             ),
-            // ProductListTile(
-            //   svgSrc: "assets/icons/Product.svg",
-            //   title: "Product Details",
-            //   press: () {
-            //     customModalBottomSheet(
-            //       context,
-            //       height: MediaQuery.of(context).size.height * 0.92,
-            //       child: const BuyFullKit(
-            //           images: ["assets/screens/Product detail.png"]),
-            //     );
-            //   },
-            // ),
             ProductListTile(
               svgSrc: "assets/icons/Delivery.svg",
               title: "Shipping Information",

@@ -11,7 +11,7 @@ class CartScreen extends StatelessWidget {
         title: const Text('Orders'),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('products').snapshots(),
+        stream: FirebaseFirestore.instance.collection('cartItems').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

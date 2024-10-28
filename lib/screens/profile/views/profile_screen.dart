@@ -50,7 +50,7 @@ class ProfileScreen extends StatelessWidget {
             text: "Orders",
             svgSrc: "assets/icons/Order.svg",
             press: () {
-              Navigator.pushNamed(context, ordersScreenRoute);
+              Navigator.pushNamed(context, cartScreenRoute);
             },
           ),
           ProfileMenuListTile(
