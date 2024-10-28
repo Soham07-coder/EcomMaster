@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
 import 'package:ecomprj/providers/cart_provider.dart';
 import 'package:ecomprj/route/route_constants.dart';
 import 'package:ecomprj/route/router.dart' as router;
 import 'package:ecomprj/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -25,6 +26,9 @@ void main() {
             : null, // Use default options for iOS
       );
     }
+
+    // Initialize Firebase Storage
+    final storage = FirebaseStorage.instance;
 
     runApp(const MyApp());
   }, (error, stackTrace) {

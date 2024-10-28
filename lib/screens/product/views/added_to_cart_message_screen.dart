@@ -2,12 +2,28 @@
 import 'package:flutter/material.dart';
 import 'package:ecomprj/constants.dart';
 import 'package:ecomprj/route/screen_export.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddedToCartMessageScreen extends StatelessWidget {
-  const AddedToCartMessageScreen({super.key});
+  final List<Map<String, dynamic>> items; // Accept the list of items
+
+  const AddedToCartMessageScreen({super.key, required this.items}); // Accept items through constructor
+
+  Future<void> _addItemsToCart() async {
+    // Get a reference to the Firestore collection
+    final cartCollection = FirebaseFirestore.instance.collection('carts');
+
+    // Iterate through the items and add each one to Firestore
+    for (var item in items) {
+      await cartCollection.add(item);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Call the method to add items to Firestore when the screen is built
+    _addItemsToCart();
+
     return Scaffold(
       body: SafeArea(
         child: Padding(

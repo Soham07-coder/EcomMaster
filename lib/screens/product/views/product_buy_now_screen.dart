@@ -49,7 +49,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
           customModalBottomSheet(
             context,
             isDismissible: false,
-            child: const AddedToCartMessageScreen(),
+            child: const AddedToCartMessageScreen(items: [],),
           );
         },
       ),
