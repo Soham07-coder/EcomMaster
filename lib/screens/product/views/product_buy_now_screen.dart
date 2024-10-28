@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -30,15 +31,15 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isConnected = true;
-
-  // State variables for selected color and size
   int _selectedColorIndex = 2; // Default selected color index
   int _selectedSizeIndex = 1; // Default selected size index
+  String userEmail = ''; // To hold the authenticated user's email
 
   @override
   void initState() {
     super.initState();
     _checkNetworkConnectivity();
+    _getCurrentUserEmail(); // Fetch the current user's email
   }
 
   void _checkNetworkConnectivity() async {
@@ -46,6 +47,15 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
     setState(() {
       _isConnected = connectivityResult != ConnectivityResult.none;
     });
+  }
+
+  void _getCurrentUserEmail() {
+    final user = FirebaseAuth.instance.currentUser; // Get the current user
+    if (user != null) {
+      setState(() {
+        userEmail = user.email ?? ''; // Store the user's email
+      });
+    }
   }
 
   void _incrementItemCount() {
@@ -64,15 +74,22 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
 
   Future<void> _saveProductData(ProductModel product) async {
     try {
-      await FirebaseFirestore.instance.collection('products').add({
+      await FirebaseFirestore.instance
+          .collection('carts')
+          .doc(userEmail) // Use email as document ID for each user
+          .collection('products') // Store products as sub-collection within the user's document
+          .add({
+        'id': product.id,
         'title': product.title,
         'price': product.price,
         'quantity': _itemCount,
         'brandName': product.brandName,
         'discountPercent': product.dicountpercent,
         'priceAfterDiscount': product.priceAfetDiscount,
+        'selectedColor': _selectedColorIndex,
+        'selectedSize': _selectedSizeIndex,
       });
-      print('Product data saved successfully!');
+      print('Product data saved successfully for $userEmail!');
     } catch (e) {
       print('Error saving product data: ${e.toString()}');
     }
@@ -88,23 +105,32 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
       priceAfetDiscount: 134.7,
       dicountpercent: 5,
     );
-
     await _saveProductData(product);
 
-    // Navigate to the AddedToCartMessageScreen with the added product details
-    Navigator.of(context).push(
+    Navigator.push(
+      context,
       MaterialPageRoute(
         builder: (context) => AddedToCartMessageScreen(
-          items: [
-            {
-              'title': product.title,
-              'price': product.price,
-              'quantity': _itemCount,
-              'brandName': product.brandName,
-              'discountPercent': product.dicountpercent,
-              'priceAfterDiscount': product.priceAfetDiscount,
-            },
-          ],
+          items: [{
+            'title': product.title,
+            'price': product.price,
+            'quantity': _itemCount,
+            'selectedColor': _selectedColorIndex,
+            'selectedSize': _selectedSizeIndex,
+          }],
+        ),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Product added to cart successfully!'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            // Code to undo the action can be added here
+          },
         ),
       ),
     );
@@ -187,7 +213,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                     selectedColorIndex: _selectedColorIndex,
                     press: (value) {
                       setState(() {
-                        _selectedColorIndex = value; // Update the selected color index
+                        _selectedColorIndex = value;
                       });
                     },
                   ),
@@ -199,7 +225,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
                     selectedIndex: _selectedSizeIndex,
                     press: (value) {
                       setState(() {
-                        _selectedSizeIndex = value; // Update the selected size index
+                        _selectedSizeIndex = value;
                       });
                     },
                   ),
