@@ -47,7 +47,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: defaultPadding / 2),
           ProfileMenuListTile(
-            text: "Orders",
+            text: "Cart",
             svgSrc: "assets/icons/Order.svg",
             press: () {
               Navigator.pushNamed(context, cartScreenRoute);
