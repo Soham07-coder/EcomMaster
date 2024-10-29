@@ -7,8 +7,9 @@ import '../../../route/route_constants.dart';
 
 class AddedToCartMessageScreen extends StatelessWidget {
   final List<Map<String, dynamic>> items; // Accept the list of items
+  final double totalPrice; // Add this line
 
-  const AddedToCartMessageScreen({super.key, required this.items}); // Accept items through constructor
+  const AddedToCartMessageScreen({super.key, required this.items,required this.totalPrice}); // Accept items through constructor
 
   Future<void> _addItemsToCart() async {
     // Get a reference to the Firestore collection
@@ -47,6 +48,11 @@ class AddedToCartMessageScreen extends StatelessWidget {
                     .copyWith(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: defaultPadding / 2),
+              Text(
+                "Your total cart value is \$${totalPrice.toStringAsFixed(2)}.", // Use totalPrice here
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: defaultPadding / 2),
               const Text(
                 "Click the checkout button to complete the purchase process.",
                 textAlign: TextAlign.center,
@@ -61,7 +67,7 @@ class AddedToCartMessageScreen extends StatelessWidget {
               const SizedBox(height: defaultPadding),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, cartScreenRoute);
+                  Navigator.pushNamed(context, cartScreenRoute, arguments: totalPrice);
                 },
                 child: const Text("Checkout"),
               ),
