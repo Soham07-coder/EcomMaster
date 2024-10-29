@@ -1,23 +1,24 @@
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../../components/cart_button.dart';
+import '../../../components/network_image_with_loader.dart';
 import '../../../constants.dart';
-import '../../../route/route_constants.dart';
+import '../../../models/product_model.dart';
 import 'added_to_cart_message_screen.dart';
+import 'components/product_list_tile.dart';
 import 'components/product_quantity.dart';
 import 'components/selected_colors.dart';
 import 'components/selected_size.dart';
 import 'components/unit_price.dart';
-import 'package:ecomprj/components/cart_button.dart';
-import 'package:ecomprj/components/network_image_with_loader.dart';
-import 'package:ecomprj/screens/product/views/components/product_list_tile.dart';
-import 'package:ecomprj/screens/product/views/location_permission_store_availability_screen.dart';
-import 'package:ecomprj/models/product_model.dart';
+import 'location_permission_store_availability_screen.dart';
 
 class ProductBuyNowScreen extends StatefulWidget {
   const ProductBuyNowScreen({super.key});
@@ -34,6 +35,9 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
   int _selectedColorIndex = 2; // Default selected color index
   int _selectedSizeIndex = 1; // Default selected size index
   String userEmail = ''; // To hold the authenticated user's email
+
+  // Price per item
+  final double _priceAfterDiscount = 134.7;
 
   @override
   void initState() {
@@ -72,6 +76,11 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
     }
   }
 
+  // Calculate the total price based on the number of items and the price per item
+  double _getTotalPrice() {
+    return _priceAfterDiscount * _itemCount;
+  }
+
   Future<void> _saveProductData(ProductModel product) async {
     try {
       await FirebaseFirestore.instance
@@ -102,11 +111,16 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
       title: "Sleeveless Ruffle",
       brandName: "Your Brand Name",
       price: 145.0,
-      priceAfetDiscount: 134.7,
+      priceAfetDiscount: _priceAfterDiscount,
       dicountpercent: 5,
     );
+
     await _saveProductData(product);
 
+    // Calculate the total price
+    double totalPrice = _getTotalPrice();
+
+    // Navigate to the AddedToCartMessageScreen and pass the total price
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -118,6 +132,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
             'selectedColor': _selectedColorIndex,
             'selectedSize': _selectedSizeIndex,
           }],
+          totalPrice: totalPrice, // Pass total price to the screen
         ),
       ),
     );
@@ -140,7 +155,7 @@ class _ProductBuyNowScreenState extends State<ProductBuyNowScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: CartButton(
-        price: 269.4,
+        price: _getTotalPrice(), // Update this to show the dynamic total price
         title: "Buy Now",
         subTitle: "Total price",
         press: _onAddToCart,
