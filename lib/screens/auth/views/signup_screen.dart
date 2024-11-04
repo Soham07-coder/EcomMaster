@@ -16,7 +16,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
+  bool isChecked = false;
   Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -58,7 +58,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: defaultPadding),
                   Row(
                     children: [
-                      Checkbox(onChanged: (value) {}, value: false),
+                      Checkbox(
+                        value: isChecked,
+                        onChanged: (value) {
+                          setState(() {
+                            isChecked = value ?? false;
+                          });
+                        },
+                      ),
                       Expanded(
                         child: Text.rich(
                           TextSpan(
@@ -67,10 +74,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               TextSpan(
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    Navigator.pushNamed(context, termsOfServicesScreenRoute);
+                                    Navigator.pushNamed(context, '/termsOfServicesScreenRoute');
                                   },
                                 text: " Terms of service ",
-                                style: const TextStyle(color: primaryColor, fontWeight: FontWeight.w500),
+                                style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
                               ),
                               const TextSpan(text: "& privacy policy."),
                             ],
